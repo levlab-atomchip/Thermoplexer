@@ -10,11 +10,11 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level =
 logging.WARNING)
 
 class Thermoplexer():
-    def __init__(self, logfilename):
-        self.logfilename = logfilename
+    def __init__(self):
+        # self.logfilename = logfilename
         self.tempreader = SPI(1,0)
         self.tempreader.msh = 1000000
-        self.init_log()
+        # self.init_log()
         
     def choose_tc(self, num):
         if num > 8 or num < 1:
