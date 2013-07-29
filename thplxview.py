@@ -26,12 +26,12 @@ class ThermoplexerView():
         conn.close()
         
         
-        fig = pylab.figure(figsize = (8,6))
+        fig = pylab.figure(figsize = (12,8))
         ax1 = fig.add_subplot(111)
         for sensor in sensors:
             x = [data[0] for data in databysensors[sensor[0]]]
             y = [data[1] for data in databysensors[sensor[0]]]
-            ax1.plot_date(x, y,'-', label = sensor[0])
+            ax1.plot_date(x, y,'.', label = sensor[0])
         ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
         ax1.legend(loc = 'upper left')
         ax1.set_xlabel('Time')
@@ -121,6 +121,6 @@ class ThermoplexerView():
 if __name__ == "__main__":
     test = ThermoplexerView('data')
     test.plot_all_TCs()
-    test.plot_all_pressures()
+    # test.plot_all_pressures()
     # test.plot_TP()
     # test.plot_figures({'Temperatures':test.plot_all_TCs(), 'Pressures':test.plot_all_pressures()}, 2, 1)
