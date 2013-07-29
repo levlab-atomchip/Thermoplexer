@@ -1,10 +1,13 @@
 import serial
 import time
+import datetime
+import psycopg2
 
 class XGS600Driver():
 
     def __init__(self):
-        self.f = serial.Serial('/dev/ttyUSB0')
+        self.f = serial.Serial('COM1')
+        self.gauges = [9,10,11]
 
     def xgs_comm(self,command):
         comm = "#00" + command + "\r"
@@ -70,11 +73,19 @@ class XGS600Driver():
         if unit == "02":
             unit = "Pascal"
         return(unit)
-
-
-
-
-
-    #print readAllPressures()
-
-    #print listAllGauges()
+        
+    def save_temps(self):
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        cur = conn.cursor()
+        pressures = self.ReadAllPressures()
+        gaugeindex=0
+        for pressure in pressures:
+            now = datetime.datetime.now()
+            # replace with read pressures
+            # self.check_overheat(temp)
+            cur.execute("INSERT INTO data VALUES (%s, %s, %s);",(self.gauges[gaugeindex], now, pressure))
+            # time.sleep(0.5)
+            gaugeindex+=1
+        conn.commit()
+        cur.close()
+        conn.close()
