@@ -38,8 +38,10 @@ class ThermoplexerView():
         ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
         fig.autofmt_xdate()
         # print(x)
+        # if show:
         pylab.show()
         # pylab.savefig('C://Users//Levlab//thermoplexerview.png')
+        # return fig
         
     # def upload_to_wiki(self):
     def plot_all_pressures(self):
@@ -72,9 +74,40 @@ class ThermoplexerView():
         ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
         fig.autofmt_xdate()
         # print(x)
+        # if show:
         pylab.show()
+        # return fig
+    
+    # def plot_TP(self):
+        # fig=pylab.figure()
+        # axt = self.plot_all_TCs(show=False)
+        # axp = self.plot_all_pressures(show=False)
+        # fig.add_subplot(211)
+        # fig.axes.append(axt)
+        # fig.add_subplot(212)
+        # fig.axes.append(axp)
+        # pylab.show()
+        
+    # def plot_figures(self,figures, nrows = 1, ncols=1):
+        # """Plot a dictionary of figures.
+
+        # Parameters
+        # ----------
+        # figures : <title, figure> dictionary
+        # ncols : number of columns of subplots wanted in the display
+        # nrows : number of rows of subplots wanted in the figure
+        # """
+
+        # fig, axeslist = matplotlib.pyplot.subplots(nrows=nrows, ncols=ncols)
+        # for ind,title in zip(range(len(figures)), figures):
+            # axeslist.ravel()[ind].imshow(figures[title], cmap=matplotlib.pyplot.gray())
+            # axeslist.ravel()[ind].set_title(title)
+            # axeslist.ravel()[ind].set_axis_off()
+        # matplotlib.pyplot.tight_layout() # optional
             
 if __name__ == "__main__":
     test = ThermoplexerView('data')
     test.plot_all_TCs()
     test.plot_all_pressures()
+    # test.plot_TP()
+    # test.plot_figures({'Temperatures':test.plot_all_TCs(), 'Pressures':test.plot_all_pressures()}, 2, 1)
