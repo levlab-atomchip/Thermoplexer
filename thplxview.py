@@ -1,8 +1,10 @@
 import psycopg2
 import pylab
 import matplotlib
+import math
 
 maxtemp = 150
+chamberofinterest=0
 
 class ThermoplexerView():
     def __init__(self,bakedbname):
@@ -52,26 +54,37 @@ class ThermoplexerView():
         databysensors = dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT %s.time, %s.value FROM %s, sensors WHERE %s.sensorid = sensors.id and sensors.name = %%s and sensors.unit='Torr' ;"%(self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname)
+            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' ;"
             #print(query)
             cur.execute(query, (sensorname, ))
             databysensors[sensorname]=cur.fetchall()
         cur.close()
         conn.close()
         
-        
-        fig = pylab.figure(figsize = (8,6))
-        ax1 = fig.add_subplot(111)
+        fig = pylab.figure(num=1,figsize=(12,6))		
+        ax1 = fig.add_subplot(121)
+        ax1.set_yscale('log')
         for sensor in sensors:
             x = [data[0] for data in databysensors[sensor[0]]]
             y = [data[1] for data in databysensors[sensor[0]]]
             ax1.plot_date(x, y,'-', label = sensor[0])
         ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
-        ax1.legend(loc = 'upper left')
+        ax1.legend(loc = 'lower left')
         ax1.set_xlabel('Time')
         ax1.set_ylabel('Pressure / Torr')
         ax1.set_title('Bake Data')
-        ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
+        
+        ax2 = fig.add_subplot(122)
+        chambername='Magellan'
+        x = [data[0] for data in databysensors[chambername]]
+        y = [data[1] for data in databysensors[chambername]]
+        ax2.plot_date(x, y,'-', label = chambername)
+        ax2.ticklabel_format(style='sci',scilimits=(0,0),axis='y')
+        ax2.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
+        ax2.legend(loc = 'upper left')
+        ax2.set_xlabel('Time')
+        ax2.set_ylabel('Pressure / Torr')
+        ax2.set_title('Bake Data')
         fig.autofmt_xdate()
         # print(x)
         # if show:

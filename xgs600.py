@@ -6,8 +6,8 @@ import psycopg2
 class XGS600Driver():
 
     def __init__(self):
-        self.f = serial.Serial('COM1')
-        self.gauges = [9,10,11]
+		self.f = serial.Serial('COM1')
+		self.gauges = [9,10,11]
 
     def xgs_comm(self,command):
         comm = "#00" + command + "\r"
@@ -74,7 +74,7 @@ class XGS600Driver():
             unit = "Pascal"
         return(unit)
         
-    def save_temps(self):
+    def save_pressures(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
         pressures = self.ReadAllPressures()
@@ -83,9 +83,19 @@ class XGS600Driver():
             now = datetime.datetime.now()
             # replace with read pressures
             # self.check_overheat(temp)
-            cur.execute("INSERT INTO data VALUES (%s, %s, %s);",(self.gauges[gaugeindex], now, pressure))
+            cur.execute("INSERT INTO pressures VALUES (%s, %s, %s);",(self.gauges[gaugeindex], now, pressure))
             # time.sleep(0.5)
             gaugeindex+=1
         conn.commit()
         cur.close()
         conn.close()
+		
+if __name__ == "__main__":
+    dbname = 'pressures'
+    pressureplx = XGS600Driver()
+    #print pressureplx.ReadSoftwareVersion()
+    pressureplx.save_pressures()
+    pressureplx.f.close() #important to close the connection otherwise next run will barf
+    #import thplxview
+    #viewer = thplxview.ThermoplexerView(dbname)
+    #viewer.plot_all_pressures()
