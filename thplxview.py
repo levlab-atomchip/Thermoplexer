@@ -4,7 +4,7 @@ import matplotlib
 import math
 
 maxtemp = 150
-chamberofinterest=0
+chamberindex=0 #0= Magellan, 1 = MOT Chamber, 2 = Oven Chamber
 
 class ThermoplexerView():
     def __init__(self,bakedbname):
@@ -61,7 +61,7 @@ class ThermoplexerView():
         cur.close()
         conn.close()
         
-        fig = pylab.figure(num=1,figsize=(12,6))		
+        fig = pylab.figure(figsize=(12,6))		
         ax1 = fig.add_subplot(121)
         ax1.set_yscale('log')
         for sensor in sensors:
@@ -75,7 +75,8 @@ class ThermoplexerView():
         ax1.set_title('Bake Data')
         
         ax2 = fig.add_subplot(122)
-        chambername='Magellan'
+        chamber=sensors[chamberindex]
+        chambername=chamber[chamberindex]
         x = [data[0] for data in databysensors[chambername]]
         y = [data[1] for data in databysensors[chambername]]
         ax2.plot_date(x, y,'-', label = chambername)

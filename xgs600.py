@@ -6,8 +6,9 @@ import psycopg2
 class XGS600Driver():
 
     def __init__(self):
-		self.f = serial.Serial('COM1')
-		self.gauges = [9,10,11]
+    #Opens db9 serial port on COM1. Use Device Manager to refresh port on first initialization.
+        self.f = serial.Serial('COM1')
+        self.gauges = [9,10,11]
 
     def xgs_comm(self,command):
         comm = "#00" + command + "\r"
@@ -25,7 +26,7 @@ class XGS600Driver():
         #print pressure_string
         if len(pressure_string)>0:
             temp_pressure = pressure_string.replace(' ','').split(',')
-
+            #print temp_pressure
             pressures = []
             for press in temp_pressure:
                 if press == 'OPEN':
@@ -38,7 +39,11 @@ class XGS600Driver():
         else:
             pressures = [-3]
         return(pressures)
-
+    
+    def ReadPressure(self,gauge):
+        pressure_string = self.xgs_comm("02I"+str(gauge))
+        return(float(pressure_string))
+        
     def ListAllGauges(self):
         gauge_string = self.xgs_comm("01")
 
@@ -95,6 +100,7 @@ if __name__ == "__main__":
     pressureplx = XGS600Driver()
     #print pressureplx.ReadSoftwareVersion()
     pressureplx.save_pressures()
+    #print pressureplx.ReadPressure(1)
     pressureplx.f.close() #important to close the connection otherwise next run will barf
     #import thplxview
     #viewer = thplxview.ThermoplexerView(dbname)
