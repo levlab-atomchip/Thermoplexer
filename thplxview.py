@@ -2,6 +2,7 @@ import psycopg2
 import pylab
 import matplotlib
 import math
+import numpy as np
 
 maxtemp = 150
 chamberindex=0 #0= Magellan, 1 = MOT Chamber, 2 = Oven Chamber
@@ -16,12 +17,17 @@ class ThermoplexerView():
         cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='C';")
         sensors = cur.fetchall()
         databysensors = dict()
+        notesbysensors=dict()
         for sensor in sensors:
             sensorname = sensor[0]
             query = "SELECT %s.time, %s.value FROM %s, sensors WHERE %s.sensorid = sensors.id and sensors.name = %%s and %s.value < 1000 and sensors.unit='C' ;"%(self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname)
             #print(query)
+            annotate_query = "SELECT annotations.note, annotations.time FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
             cur.execute(query, (sensorname, ))
             databysensors[sensorname]=cur.fetchall()
+            cur.execute(annotate_query, (sensorname,))
+            notesbysensors[sensorname]=cur.fetchall()
+        print notesbysensors
         cur.close()
         conn.close()
         
@@ -32,6 +38,9 @@ class ThermoplexerView():
             x = [data[0] for data in databysensors[sensor[0]]]
             y = [data[1] for data in databysensors[sensor[0]]]
             ax1.plot_date(x, y,'.', label = sensor[0])
+            for annotation in notesbysensors[sensor[0]]:
+                print(annotation)
+                ax1.annotate(annotation[0], (annotation[1], np.median(y)))
         ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
         ax1.legend(loc = 'upper left')
         ax1.set_xlabel('Time')
