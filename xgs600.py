@@ -8,7 +8,7 @@ class XGS600Driver():
     def __init__(self):
     #Opens db9 serial port on COM1. Use Device Manager to refresh port on first initialization.
         self.f = serial.Serial('COM1')
-        self.gauges = [9,10,11]
+        self.gauges = [9,10,11,12]
 
     def xgs_comm(self,command):
         comm = "#00" + command + "\r"
@@ -84,6 +84,8 @@ class XGS600Driver():
         cur = conn.cursor()
         pressures = self.ReadAllPressures()
         gaugeindex=0
+        print self.gauges
+        print pressures
         for pressure in pressures:
             now = datetime.datetime.now()
             # replace with read pressures
