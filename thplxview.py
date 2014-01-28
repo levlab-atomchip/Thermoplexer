@@ -3,9 +3,13 @@ import pylab
 import matplotlib
 import math
 import numpy as np
+import datetime
 
 maxtemp = 150
-chamberindex=0 #0= Magellan, 1 = MOT Chamber, 2 = Oven Chamber
+chamberindex=0 #0= , 1 = MOT Chamber, 2 = Magellan
+STARTDATETIME = datetime.datetime(2013,9,01,16)
+# STARTDATETIME = datetime.datetime(2013,8,3,18)
+# FINISHDATETIME = datetime.datetime(2013, 8, 10, 6)
 
 class ThermoplexerView():
     def __init__(self,bakedbname):
@@ -20,10 +24,10 @@ class ThermoplexerView():
         notesbysensors=dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT %s.time, %s.value FROM %s, sensors WHERE %s.sensorid = sensors.id and sensors.name = %%s and %s.value < 1000 and sensors.unit='C' ;"%(self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname)
+            query = "SELECT %s.time, %s.value FROM %s, sensors WHERE %s.sensorid = sensors.id and sensors.name = %%s and %s.value < 1000 and sensors.unit='C' and %s.time > %%s;"%(self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname,self.bakedbname)
             #print(query)
-            annotate_query = "SELECT annotations.note, annotations.time FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
-            cur.execute(query, (sensorname, ))
+            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
+            cur.execute(query, (sensorname, STARTDATETIME))
             databysensors[sensorname]=cur.fetchall()
             cur.execute(annotate_query, (sensorname,))
             notesbysensors[sensorname]=cur.fetchall()
@@ -40,12 +44,12 @@ class ThermoplexerView():
             ax1.plot_date(x, y,'.', label = sensor[0])
             for annotation in notesbysensors[sensor[0]]:
                 print(annotation)
-                ax1.annotate(annotation[0], (annotation[1], np.median(y)))
+                ax1.annotate(annotation[0], (annotation[1], annotation[2]), xytext=(-50, 30), textcoords='offset points',arrowprops=dict(arrowstyle="->"), bbox=dict(boxstyle="round", fc="0.8"))
         ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
         ax1.legend(loc = 'upper left')
         ax1.set_xlabel('Time')
         ax1.set_ylabel('Temperature / C')
-        ax1.set_title('Bake Data')
+        # ax1.set_title('Bake Data')
         ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
         fig.autofmt_xdate()
         # print(x)
@@ -61,12 +65,16 @@ class ThermoplexerView():
         cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='Torr';")
         sensors = cur.fetchall()
         databysensors = dict()
+        notesbysensors = dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' ;"
+            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.value > 0 and pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' and pressures.time > %s;"
             #print(query)
-            cur.execute(query, (sensorname, ))
+            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
+            cur.execute(query, (sensorname, STARTDATETIME,))
             databysensors[sensorname]=cur.fetchall()
+            cur.execute(annotate_query, (sensorname,))
+            notesbysensors[sensorname]=cur.fetchall()
         cur.close()
         conn.close()
         
@@ -77,11 +85,14 @@ class ThermoplexerView():
             x = [data[0] for data in databysensors[sensor[0]]]
             y = [data[1] for data in databysensors[sensor[0]]]
             ax1.plot_date(x, y,'-', label = sensor[0])
+            for annotation in notesbysensors[sensor[0]]:
+                print(annotation)
+                ax1.annotate(annotation[0], (annotation[1], annotation[2]), xytext=(-50, 30), textcoords='offset points',arrowprops=dict(arrowstyle="->"), bbox=dict(boxstyle="round", fc="0.8"))
         ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
         ax1.legend(loc = 'lower left')
         ax1.set_xlabel('Time')
         ax1.set_ylabel('Pressure / Torr')
-        ax1.set_title('Bake Data')
+        # ax1.set_title('Bake Data')
         
         ax2 = fig.add_subplot(122)
         chamber=sensors[chamberindex]
@@ -98,6 +109,8 @@ class ThermoplexerView():
         fig.autofmt_xdate()
         # print(x)
         # if show:
+        wm = pylab.get_current_fig_manager()
+        wm.window.wm_geometry("1920x1080+50+50")
         pylab.show()
         # return fig
     
