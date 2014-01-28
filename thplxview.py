@@ -54,7 +54,7 @@ class ThermoplexerView():
         databysensors = dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' ;"
+            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.value > 0 and pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' ;"
             #print(query)
             cur.execute(query, (sensorname, ))
             databysensors[sensorname]=cur.fetchall()
