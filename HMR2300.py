@@ -11,8 +11,8 @@ class HMR2300Driver():
 
     def __init__(self):
     #Opens serial port on COM4. Use Device Manager to refresh port on first initialization.
-        self.f = serial.Serial('COM4')
-        
+        self.f = serial.Serial('COM5')
+
     def hmr_comm(self,command):
         comm = "*00" + command + "\r"
 
@@ -38,8 +38,8 @@ class HMR2300Driver():
             if entry == '-':
                 xyzstring[index + 1] = '-' + xyzstring[index + 1]
                 del xyzstring[index]
-                
-            
+
+
         xyz = []
         for x in xyzstring:
             if DEBUG:
@@ -48,13 +48,13 @@ class HMR2300Driver():
             xyz.append(float(x)/15000.0) #units in gauss
 
         return(xyz)
-        
+
     def ReadSoftwareVersion(self):
         return(self.hmr_comm("F"))
 
     def ReadHardwareVersion(self):
         return(self.hmr_comm("H"))
-        
+
     def save_xyz(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
@@ -66,7 +66,7 @@ class HMR2300Driver():
         conn.commit()
         cur.close()
         conn.close()
-		
+
 if __name__ == "__main__":
     honeywell = HMR2300Driver()
     honeywell.save_xyz()
