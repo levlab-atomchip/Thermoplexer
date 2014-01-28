@@ -114,6 +114,48 @@ class ThermoplexerView():
         pylab.show()
         # return fig
     
+    def plot_all_fields(self):
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        cur = conn.cursor()
+        cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='G';")
+        sensors = cur.fetchall()
+        databysensors = dict()
+        notesbysensors = dict()
+        for sensor in sensors:
+            sensorname = sensor[0]
+            query = "SELECT bfields.time, bfields.value FROM bfields, sensors WHERE bfields.sensorid = sensors.id and sensors.name = %s and sensors.unit='G' and bfields.time > %s;"
+            #print(query)
+            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
+            cur.execute(query, (sensorname, STARTDATETIME,))
+            databysensors[sensorname]=cur.fetchall()
+            cur.execute(annotate_query, (sensorname,))
+            notesbysensors[sensorname]=cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        fig = pylab.figure(figsize=(12,6))		
+        ax1 = fig.add_subplot(111)
+        for sensor in sensors:
+            x = [data[0] for data in databysensors[sensor[0]]]
+            y = [data[1] for data in databysensors[sensor[0]]]
+            ax1.plot_date(x, y,'-', label = sensor[0])
+            for annotation in notesbysensors[sensor[0]]:
+                print(annotation)
+                ax1.annotate(annotation[0], (annotation[1], annotation[2]), xytext=(-50, 30), textcoords='offset points',arrowprops=dict(arrowstyle="->"), bbox=dict(boxstyle="round", fc="0.8"))
+        ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
+        ax1.legend(loc = 'lower left')
+        ax1.set_xlabel('Time')
+        ax1.set_ylabel('Field / G')
+        
+
+        fig.autofmt_xdate()
+        # print(x)
+        # if show:
+        wm = pylab.get_current_fig_manager()
+        wm.window.wm_geometry("1920x1080+50+50")
+        pylab.show()
+    
+    
     # def plot_TP(self):
         # fig=pylab.figure()
         # axt = self.plot_all_TCs(show=False)

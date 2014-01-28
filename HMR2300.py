@@ -5,6 +5,8 @@ import psycopg2
 
 HONEYWELL_SENSORIDS = [13,14,15]
 
+DEBUG = 0
+
 class HMR2300Driver():
 
     def __init__(self):
@@ -23,11 +25,27 @@ class HMR2300Driver():
 
     def readxyz(self):
         xyzstring = self.hmr_comm("P")
+        if DEBUG:
+            print xyzstring
         xyzstring = xyzstring.replace(',','').replace('\r','')
+        if DEBUG:
+            print xyzstring
         xyzstring = xyzstring.split()
+        if DEBUG:
+            print xyzstring
+        for index, entry in enumerate(xyzstring):
+            # this fixes a problem where minus signs have a space after them
+            if entry == '-':
+                xyzstring[index + 1] = '-' + xyzstring[index + 1]
+                del xyzstring[index]
+                
+            
         xyz = []
         for x in xyzstring:
-            xyz.append(float(x)/15000) #units in gauss
+            if DEBUG:
+                print x
+                print float(x)
+            xyz.append(float(x)/15000.0) #units in gauss
 
         return(xyz)
         
@@ -43,15 +61,14 @@ class HMR2300Driver():
         compass = self.readxyz()
         for dirindex, _ in enumerate(compass):
             now = datetime.datetime.now()
-            cur.execute("INSERT INTO data VALUES (%s, %s, %s);",(HONEYWELL_SENSORIDS[dirindex], now, compass[dirindex]))
+            cur.execute("INSERT INTO bfields VALUES (%s, %s, %s);",(HONEYWELL_SENSORIDS[dirindex], now, compass[dirindex]))
             time.sleep(0.1)
         conn.commit()
         cur.close()
         conn.close()
 		
 if __name__ == "__main__":
-    dbname = 'pressures'
     honeywell = HMR2300Driver()
-    #honeywell.save_xyz()
-    print str(honeywell.readxyz())
+    honeywell.save_xyz()
+    # print str(honeywell.readxyz())
     honeywell.f.close()#important to close the connection otherwise next run will barf
