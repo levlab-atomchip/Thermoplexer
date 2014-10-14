@@ -8,7 +8,7 @@ class XGS600Driver():
     def __init__(self):
     #Opens db9 serial port on COM1. Use Device Manager to refresh port on first initialization.
         self.f = serial.Serial('COM1')
-        self.gauges = [9,10,11,12]
+        self.gauges = [1,2,3,4] # Using the sensors_july2014 table
 
     def xgs_comm(self,command):
         comm = "#00" + command + "\r"
@@ -39,11 +39,11 @@ class XGS600Driver():
         else:
             pressures = [-3]
         return(pressures)
-    
+
     def ReadPressure(self,gauge):
         pressure_string = self.xgs_comm("02I"+str(gauge))
         return(float(pressure_string))
-        
+
     def ListAllGauges(self):
         gauge_string = self.xgs_comm("01")
 
@@ -78,7 +78,7 @@ class XGS600Driver():
         if unit == "02":
             unit = "Pascal"
         return(unit)
-        
+
     def save_pressures(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
@@ -90,15 +90,15 @@ class XGS600Driver():
             now = datetime.datetime.now()
             # replace with read pressures
             # self.check_overheat(temp)
-            cur.execute("INSERT INTO pressures VALUES (%s, %s, %s);",(self.gauges[gaugeindex], now, pressure))
+            cur.execute("INSERT INTO pressures_july2014 VALUES (%s, %s, %s);",(self.gauges[gaugeindex], now, pressure))
             # time.sleep(0.5)
             gaugeindex+=1
         conn.commit()
         cur.close()
         conn.close()
-		
+
 if __name__ == "__main__":
-    dbname = 'pressures'
+    dbname = 'pressures_july2014'
     pressureplx = XGS600Driver()
     #print pressureplx.ReadSoftwareVersion()
     pressureplx.save_pressures()

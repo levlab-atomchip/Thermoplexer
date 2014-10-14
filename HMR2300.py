@@ -5,7 +5,7 @@ import psycopg2
 
 HONEYWELL_SENSORIDS = [13,14,15]
 
-DEBUG = 0
+DEBUG = 1
 
 class HMR2300Driver():
 

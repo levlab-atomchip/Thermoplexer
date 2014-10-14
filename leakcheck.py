@@ -8,7 +8,7 @@ import thplxview
 import time
 
 #Enter the gauge number to watch
-gauge=4
+gauge=1
 
 startTime=time.time()
 #Initialize figure
@@ -30,7 +30,7 @@ while True:
     ax.relim()
     ax.autoscale_view()
     plt.draw()
-    #time.sleep(1)
+    # time.sleep(1)
     
     if msvcrt.kbhit():
 	if ord(msvcrt.getch()) == 27:
