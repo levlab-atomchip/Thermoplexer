@@ -1,3 +1,7 @@
+#started by RWT
+
+#TODO: refactor the plot_all_* methods, too much duplicated code
+
 import psycopg2
 import pylab
 import matplotlib
@@ -6,85 +10,84 @@ import numpy as np
 import datetime
 
 maxtemp = 150
-chamberindex = 0 #0= Oven, 3 = MOT Chamber, 0 = Magellan]
-# STARTDATETIME = datetime.datetime(2014,7,16,15,5)
-STARTDATETIME = datetime.datetime(2014,7,1,18)
-# FINISHDATETIME = datetime.datetime(2013, 8, 10, 6)
+chamberindex = 0 #0= Oven, 3 = MOT Chamber, 2 = Magellan]
+STARTDATETIME = datetime.datetime(2014,7,1,15,5)
+
+THERMOCOUPLE_TABLE = 'thermocouples_8x'
+DATA_TABLE = 'data_8x_july2014'
+ANNOTATIONS_TABLE = 'annotations_8x_july2014'
+GAUGE_TABLE = 'sensors_july2014'
+PRESSURES_TABLE = 'pressures_july2014'
 
 matplotlib.rcParams['axes.color_cycle'] = ['b', 'g', 'r', 'c', 'm', 'y', 'k','(1,1,0)','(1,0,.8)','(0,0.5,0.5)','(0.5,0,0)','(0.7,0.7,0.7)','(0.1,0.9,0.1)']
 
 class ThermoplexerView():
 
-    def __init__(self,bakedbname):
+    def __init__(self,bakedbname, showplot = False):
         self.bakedbname = bakedbname
+        self.showplot = showplot
 		       			
     def plot_all_TCs(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
-        cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='C';")
+        sensor_query = '''SELECT {0}.name FROM {0} WHERE {0}.fault=FALSE and {0}.unit='C';'''.format(THERMOCOUPLE_TABLE)
+        cur.execute(sensor_query)
         sensors = cur.fetchall()
-        
-       
+
         databysensors = dict()
         notesbysensors=dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT %s.time, %s.value FROM %s, sensors WHERE %s.sensorid = sensors.id and sensors.name = %%s and %s.value < 1000 and sensors.unit='C' and %s.time > %%s;"%(self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname, self.bakedbname,self.bakedbname)
+            data_query = '''SELECT {0}.time, {0}.value FROM {0}, {1} WHERE {0}.sensorid = {1}.id and {1}.name = %s and {0}.value < 1000 and {1}.unit='C' and {0}.time > %s;'''.format(DATA_TABLE, THERMOCOUPLE_TABLE)
             #print(query)
-            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
-            cur.execute(query, (sensorname, STARTDATETIME))
+            annotate_query = '''SELECT {0}.note, {0}.time, {0}.pressure FROM {0}, {1} WHERE {1}.name = %s and {0}.sensorid={1}.id'''.format(ANNOTATIONS_TABLE, THERMOCOUPLE_TABLE)
+            cur.execute(data_query, (sensorname, STARTDATETIME))
             databysensors[sensorname]=cur.fetchall()
             cur.execute(annotate_query, (sensorname,))
             notesbysensors[sensorname]=cur.fetchall()
-        print notesbysensors
         cur.close()
         conn.close()
-        
-        
 
         fig = pylab.figure(figsize = (12,6))
-        self.ax1 = fig.add_subplot(111)
-        # self.ax1.clear()
+        ax1 = fig.add_subplot(111)
+        
         
         for sensor in sensors:
             x = [data[0] for data in databysensors[sensor[0]]]
             y = [data[1] for data in databysensors[sensor[0]]]
-            self.ax1.plot_date(x, y, '-', label = sensor[0])
+            ax1.plot_date(x, y, '-', label = sensor[0])
             for annotation in notesbysensors[sensor[0]]:
                 print(annotation)
                 self.ax1.annotate(annotation[0], (annotation[1], annotation[2]), xytext=(-50, 30), textcoords='offset points',arrowprops=dict(arrowstyle="->"), bbox=dict(boxstyle="round", fc="0.8"))
-        self.ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
-        self.ax1.legend(loc = 'upper left')
-        self.ax1.set_xlabel('Time')
-        self.ax1.set_ylabel('Temperature / C')
-        # ax1.set_title('Bake Data')
-        self.ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
-        #fig.autofmt_xdate()
+        ax1.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
+        ax1.legend(loc = 'upper left')
+        ax1.set_xlabel('Time')
+        ax1.set_ylabel('Temperature / C')
+        ax1.set_title('Bake Data, July 2014')
+        ax1.axhline(y = maxtemp, linewidth = 4, color = 'r')
+        fig.autofmt_xdate()
         
-        # print(x)
-        # if show:
-        
-        #FJ
-        pylab.show()
-        #
-        
-        # pylab.savefig('C://Users//Levlab//thermoplexerview.png')
+        if self.showplot:
+            pylab.show()
+        else:
+            pylab.savefig('Z:\\Experiments\\Atomic Chip Microscopy\\Bakeout\\thermoplexerview.png')
         # return fig
         
-    # def upload_to_wiki(self):
+    def upload_to_wiki(self):
+        pass
     def plot_all_pressures(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
-        cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='Torr';")
+        sensor_query = '''SELECT {0}.name FROM {0} WHERE {0}.fault=FALSE and {0}.unit='Torr';'''.format(GAUGE_TABLE)
+        cur.execute(sensor_query)
         sensors = cur.fetchall()
         databysensors = dict()
         notesbysensors = dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT pressures.time, pressures.value FROM pressures, sensors WHERE pressures.value > 0 and pressures.id = sensors.id and sensors.name = %s and sensors.unit='Torr' and pressures.time > %s;"
-            #print(query)
-            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
-            cur.execute(query, (sensorname, STARTDATETIME,))
+            data_query = '''SELECT {0}.time, {0}.value FROM {0}, {1} WHERE {0}.value > 0 and {0}.id = {1}.id and {1}.name = %s and {1}.unit='Torr' and {0}.time > %s;'''.format(PRESSURES_TABLE, GAUGE_TABLE)
+            annotate_query = '''SELECT {0}.note, {0}.time, {0}.pressure FROM {0}, {1} WHERE {1}.name = %s and {0}.sensorid={1}.id'''.format(ANNOTATIONS_TABLE, GAUGE_TABLE)
+            cur.execute(data_query, (sensorname, STARTDATETIME,))
             databysensors[sensorname]=cur.fetchall()
             cur.execute(annotate_query, (sensorname,))
             notesbysensors[sensorname]=cur.fetchall()
@@ -92,7 +95,7 @@ class ThermoplexerView():
         conn.close()        
       
         fig = pylab.figure(figsize=(12,6))		
-        ax1 = fig.add_subplot(121)
+        ax1 = fig.add_subplot(111)
         ax1.set_yscale('log')
         for sensor in sensors:
             x = [data[0] for data in databysensors[sensor[0]]]
@@ -107,38 +110,42 @@ class ThermoplexerView():
         ax1.set_ylabel('Pressure / Torr')
         # ax1.set_title('Bake Data')
         
-        ax2 = fig.add_subplot(122)
-        chamber=sensors[chamberindex]
-        chambername=chamber[chamberindex]
-        x = [data[0] for data in databysensors[chambername]]
-        y = [data[1] for data in databysensors[chambername]]
-        ax2.plot_date(x, y,'-', label = chambername)
-        ax2.ticklabel_format(style='sci',scilimits=(0,0),axis='y')
-        ax2.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
-        ax2.legend(loc = 'upper left')
-        ax2.set_xlabel('Time')
-        ax2.set_ylabel('Pressure / Torr')
-        ax2.set_title('Bake Data')
+        # ax2 = fig.add_subplot(122)
+        # chamber=sensors[chamberindex]
+        # chambername=chamber[chamberindex]
+        # x = [data[0] for data in databysensors[chambername]]
+        # y = [data[1] for data in databysensors[chambername]]
+        # ax2.plot_date(x, y,'-', label = chambername)
+        # ax2.ticklabel_format(style='sci',scilimits=(0,0),axis='y')
+        # ax2.fmt_xdate = matplotlib.dates.DateFormatter('%H%M')
+        # ax2.legend(loc = 'upper left')
+        # ax2.set_xlabel('Time')
+        # ax2.set_ylabel('Pressure / Torr')
+        # ax2.set_title('Bake Data')
         fig.autofmt_xdate()
         # print(x)
         # if show:
         wm = pylab.get_current_fig_manager()
-        wm.window.wm_geometry("1920x1080+50+50")
-        pylab.show()
+        # wm.window.wm_geometry("1920x1080+50+50")
+        wm.window.state('zoomed')
+        if self.showplot:
+            pylab.show()
+        else:
+            pylab.savefig('Z:\\Experiments\\Atomic Chip Microscopy\\Bakeout\\gaugeview.png')
         # return fig
     
     def plot_all_fields(self):
         conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
         cur = conn.cursor()
-        cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='G';")
+        cur.execute("SELECT sensors_july2014.name FROM sensors_july2014 WHERE sensors_july2014.fault=FALSE and sensors_july2014.unit='G';")
         sensors = cur.fetchall()
         databysensors = dict()
         notesbysensors = dict()
         for sensor in sensors:
             sensorname = sensor[0]
-            query = "SELECT bfields.time, bfields.value FROM bfields, sensors WHERE bfields.sensorid = sensors.id and sensors.name = %s and sensors.unit='G' and bfields.time > %s;"
+            query = "SELECT bfields.time, bfields.value FROM bfields, sensors_july2014 WHERE bfields.sensorid = sensors_july2014.id and sensors_july2014.name = %s and sensors_july2014.unit='G' and bfields.time > %s;"
             #print(query)
-            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors WHERE sensors.name = %s and annotations.sensorid=sensors.id"
+            annotate_query = "SELECT annotations.note, annotations.time, annotations.pressure FROM annotations, sensors_july2014 WHERE sensors_july2014.name = %s and annotations.sensorid=sensors_july2014.id"
             cur.execute(query, (sensorname, STARTDATETIME,))
             databysensors[sensorname]=cur.fetchall()
             cur.execute(annotate_query, (sensorname,))
@@ -201,8 +208,8 @@ class ThermoplexerView():
         # matplotlib.pyplot.tight_layout() # optional
             
 if __name__ == "__main__":
-    test = ThermoplexerView('data')
+    test = ThermoplexerView('data_july2014')
     test.plot_all_TCs()
-    # test.plot_all_pressures()
+    test.plot_all_pressures()
     # test.plot_TP()
     # test.plot_figures({'Temperatures':test.plot_all_TCs(), 'Pressures':test.plot_all_pressures()}, 2, 1)
