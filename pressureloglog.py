@@ -11,7 +11,7 @@ STARTDATETIME = datetime.datetime(2013,8,8,16,15)
 ENDDATETIME = datetime.datetime.now()
 STARTDATEPOSIX = time.mktime(STARTDATETIME.timetuple())
 
-conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
 cur = conn.cursor()
 cur.execute("SELECT sensors.name FROM sensors WHERE sensors.fault=FALSE and sensors.unit='Torr';")
 sensors = cur.fetchall()

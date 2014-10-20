@@ -13,7 +13,7 @@ def sim_temp(num, timestamp):
     temp = max_temp[num - 1] * ( 1 - math.exp(-1*minutes_passed / tau[num-1])) + 20 + round(random.normalvariate(0, 3))
     return temp
 
-conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
 cur = conn.cursor()
 for i in range(0,n):
     for TCnum in TCnums:

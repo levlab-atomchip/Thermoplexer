@@ -21,7 +21,7 @@ class ThermoplexerView():
         self.bakedbname = bakedbname
 		       			
     def plot_all_TCs(self):
-        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
         cur = conn.cursor()
         cur.execute("SELECT thermocouples_july2014.name FROM thermocouples_july2014 WHERE thermocouples_july2014.fault=FALSE and thermocouples_july2014.unit='C';")
         sensors = cur.fetchall()
@@ -68,7 +68,7 @@ class ThermoplexerView():
     def upload_to_wiki(self):
         pass
     def plot_all_pressures(self):
-        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
         cur = conn.cursor()
         cur.execute("SELECT sensors_july2014.name FROM sensors_july2014 WHERE sensors_july2014.fault=FALSE and sensors_july2014.unit='Torr';")
         sensors = cur.fetchall()
@@ -124,7 +124,7 @@ class ThermoplexerView():
         # return fig
     
     def plot_all_fields(self):
-        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
         cur = conn.cursor()
         cur.execute("SELECT sensors_july2014.name FROM sensors_july2014 WHERE sensors_july2014.fault=FALSE and sensors_july2014.unit='G';")
         sensors = cur.fetchall()

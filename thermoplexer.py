@@ -10,7 +10,7 @@ import smtplib
 logging.basicConfig(format='%(levelname)s:%(message)s', level = 
 logging.WARNING)
 
-CONNECTSTR = "dbname=will user=levlab host=levlabserver.stanford.edu"
+CONNECTSTR = "dbname=will user=levlab host=levlabserver2.stanford.edu"
 
 class Thermoplexer():
     def __init__(self, dbname, maxtemp = 200):
@@ -50,7 +50,7 @@ class Thermoplexer():
             time.sleep(0.5)
             
     def save_temps(self):
-        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
         cur = conn.cursor()
         for TCnum in self.TCnums:
             now = datetime.datetime.now()

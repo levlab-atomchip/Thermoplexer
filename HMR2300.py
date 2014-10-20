@@ -56,7 +56,7 @@ class HMR2300Driver():
         return(self.hmr_comm("H"))
 
     def save_xyz(self):
-        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+        conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
         cur = conn.cursor()
         compass = self.readxyz()
         for dirindex, _ in enumerate(compass):

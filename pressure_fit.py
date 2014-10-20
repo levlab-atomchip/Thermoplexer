@@ -22,7 +22,7 @@ def exp_func(t, Af, A, tau):
 
 
 def fit_pressures(target_sensor):
-    conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+    conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
     cur = conn.cursor()
     sensor_query = '''SELECT {0}.name FROM {0} WHERE {0}.fault=FALSE and {0}.unit='Torr';'''.format(GAUGE_TABLE)
     cur.execute(sensor_query)

@@ -12,7 +12,7 @@ fig, ax = viewer.make_obj()
 def update_title(JackAndXander):
     viewer.plot_all_TCs()
     fig.canvas.draw()
-    fig.savefig('//levlabserver.stanford.edu/levlabgroup/Experiments/Atomic Chip Microscopy/Logging/Temperature.png')
+    fig.savefig('//levlabserver2.stanford.edu/levlabgroup/Experiments/Atomic Chip Microscopy/Logging/Temperature.png')
     
 update_title(None)
 

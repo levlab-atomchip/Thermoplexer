@@ -1,7 +1,7 @@
 import psycopg2
 import datetime
 
-conn = psycopg2.connect("dbname=will user=levlab host=levlabserver.stanford.edu")
+conn = psycopg2.connect("dbname=will user=levlab host=levlabserver2.stanford.edu")
 cur = conn.cursor()
 
 annotations = [
